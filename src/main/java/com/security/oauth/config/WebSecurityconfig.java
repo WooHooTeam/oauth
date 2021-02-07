@@ -21,6 +21,7 @@ public class WebSecurityconfig extends WebSecurityConfigurerAdapter {
     @Override
     public void configure(HttpSecurity http) throws Exception {
         //url의 권한을 permitAll으로 바꾸어 줍니다.
+        //url 권한 조심하자.
         http.authorizeRequests()
                 .antMatchers("/**").permitAll()
                 .and().csrf().disable()
