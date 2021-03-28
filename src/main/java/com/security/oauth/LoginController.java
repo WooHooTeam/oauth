@@ -22,13 +22,13 @@ public class LoginController {
     PasswordEncoder passwordEncoder;
 
     @PostMapping(value = "/login")
-    public String login(@RequestBody Map<String,String> body){
+    public String login(@RequestBody Map<String,String> body) throws Exception {
         User user=userDao.findByUsername(body.get("username"));
-        if(user==null)return "Your Username is incorrect";
+        if(user==null)throw new Exception("INCORRECT");
         if(passwordEncoder.matches(body.get("password"),user.getPassword())) {
-
             return jwtTokenProvider.createToken(body.get("username"));
         }
-        else return "Wrong Password!";
+        else throw new Exception("INCORRECT");
+        //else return "Wrong Password!";
     }
 }
