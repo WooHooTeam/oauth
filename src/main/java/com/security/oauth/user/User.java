@@ -22,4 +22,6 @@ public class User {
     private int userType;
     @Column(nullable = false)
     private Date date;
+    @Column(name="korean_name", nullable = false)
+    private String koreanname;
 }

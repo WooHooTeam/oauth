@@ -36,7 +36,7 @@ public class UserInformationService implements UserDetailsService {
 
         UserInformation loginUser  = new UserInformation();
 
-        List<GrantedAuthority> Authoritylist = new ArrayList<>();
+        /*List<GrantedAuthority> Authoritylist = new ArrayList<>();
         switch(user.getUserType()) {
             case 0 :
                 // admin
@@ -45,12 +45,14 @@ public class UserInformationService implements UserDetailsService {
                 // user
                 Authoritylist.add(new SimpleGrantedAuthority("USER"));
                 break;
-        }
+        }*/
 
         loginUser.setUsername(user.getUsername());
         loginUser.setPassword(user.getPassword());
-        loginUser.setAuthorities(Authoritylist);
+        //loginUser.setAuthorities(Authoritylist);
+        loginUser.setKoreanname(user.getKoreanname());
 
+        System.out.println(user.getUsername());
         return loginUser;
     }
 }

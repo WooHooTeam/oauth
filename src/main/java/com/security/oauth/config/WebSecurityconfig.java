@@ -1,61 +1,50 @@
 package com.security.oauth.config;
 
-import com.security.oauth.user.UserInformationService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+@RequiredArgsConstructor
 @EnableWebSecurity
 public class WebSecurityconfig extends WebSecurityConfigurerAdapter {
-//주석처리한 메소드들은 없어도 jwt(jason web token)을 받아오는데 아무 문제가 없어서 일단은 주석처리 해놨다.
-    @Autowired
-    private UserInformationService userInformationService;
 
-//    @Override
-//    public void configure(HttpSecurity http) throws Exception {
-//        //url의 권한을 permitAll으로 바꾸어 줍니다.
-//        //url 권한 조심하자.
-//        http.authorizeRequests()
-//                .antMatchers("/**").permitAll()
-//                .and().csrf().disable()
-//                .headers().disable();
-//    }
-//
-//    @Override
-//    public void configure(AuthenticationManagerBuilder builder)
-//            throws Exception {
-//        // custom user인증 서비스를 사용하기위한 설정입니다.
-//        builder.authenticationProvider(authenticationProvider());
-//    }
-//
+    private final JwtTokenProvider jwtTokenProvider;
 
+    // 암호화에 필요한 PasswordEncoder 를 Bean 등록합니다.
     @Bean
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        // authenticationManage 빈 등록
-        return super.authenticationManagerBean();
-    }
-
-    @Bean
-    public static PasswordEncoder passwordEncoder() {
-        // Spring5부터 PasswordEncoder 지정은 필수로 진행해주어야 합니다.
+    public PasswordEncoder passwordEncoder() {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 
-//    @Bean
-//    public DaoAuthenticationProvider authenticationProvider() {
-//        // custom user인증 서비스를 사용하기위한 설정입니다.
-//        DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
-//        authenticationProvider.setUserDetailsService(userInformationService);
-//        authenticationProvider.setPasswordEncoder(passwordEncoder());
-//        return authenticationProvider;
+    // authenticationManager를 Bean 등록합니다.
+    @Bean
+    @Override
+    public AuthenticationManager authenticationManagerBean() throws Exception {
+        return super.authenticationManagerBean();
+    }
+//    @Override
+//    public void configure(WebSecurity web) throws Exception{
+//        web.ignoring().antMatchers("/h2-console/**");
 //    }
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http
+                .csrf().disable() // csrf 보안 토큰 disable처리.
+                .authorizeRequests() // 요청에 대한 사용권한 체크
+//                .antMatchers("/actions/**").authenticated()
+//                .antMatchers("/documents/**").authenticated()
+                .anyRequest().permitAll(); // 그외 나머지 요청은 누구나 접근 가능
+                //.and()
+                //.addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider),
+                        //UsernamePasswordAuthenticationFilter.class);
+        // JwtAuthenticationFilter를 UsernamePasswordAuthenticationFilter 전에 넣는다
+    }
 
 }

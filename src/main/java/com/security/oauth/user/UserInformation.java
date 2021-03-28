@@ -12,6 +12,7 @@ public class UserInformation implements UserDetails {
     private String username;
     private String password;
     private List<GrantedAuthority> authorities;
+    private String koreanname;
 
     @Override
     public boolean isAccountNonExpired() {
