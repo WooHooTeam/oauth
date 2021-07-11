@@ -11,7 +11,8 @@ import java.util.Date;
 public class User {
 
     @Id
-    @GeneratedValue(strategy= GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQUENCENAME") //oracle의 경우 이런식으로 기본키 할당을 해줘야함.
+    @SequenceGenerator(sequenceName = "SEQUENCENAME", name = "SEQUENCENAME", allocationSize = 1)
     private int id;
 
     @Column(name = "user_name", length = 20, unique = true, nullable = false)
@@ -20,8 +21,8 @@ public class User {
     private String password;
     @Column(name = "user_type", nullable = false)
     private int userType;
-    @Column(nullable = false)
-    private Date date;
+    /*@Column(nullable = false)
+    private Date date;*/
     @Column(name="korean_name", nullable = false)
     private String koreanname;
 }
