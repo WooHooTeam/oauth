@@ -25,4 +25,6 @@ public class User {
     private Date date;*/
     @Column(name="korean_name", nullable = false)
     private String koreanname;
+    @Column(name="birthday",nullable = false)
+    private String birthday;
 }

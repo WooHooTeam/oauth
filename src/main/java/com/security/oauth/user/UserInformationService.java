@@ -51,8 +51,8 @@ public class UserInformationService implements UserDetailsService {
         loginUser.setPassword(user.getPassword());
         //loginUser.setAuthorities(Authoritylist);
         loginUser.setKoreanname(user.getKoreanname());
+        loginUser.setBirthday(user.getBirthday());
 
-        System.out.println(user.getUsername());
         return loginUser;
     }
 }

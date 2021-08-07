@@ -24,7 +24,6 @@ public class OracleConfig {
     public DataSource dataSource(){
         DriverManagerDataSource ds = new DriverManagerDataSource();
         ds.setDriverClassName(oracle.jdbc.driver.OracleDriver.class.getName());
-        String path = "/var/oracle/wallet";
         ds.setUrl(url);
         ds.setUsername(username);
         ds.setPassword(password);
