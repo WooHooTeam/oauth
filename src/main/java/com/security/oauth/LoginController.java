@@ -2,6 +2,7 @@ package com.security.oauth;
 
 import com.security.oauth.config.JwtTokenProvider;
 import com.security.oauth.config.WebSecurityconfig;
+import com.security.oauth.response.ResponseMessage;
 import com.security.oauth.user.User;
 import com.security.oauth.user.UserDTO;
 import com.security.oauth.user.UserDao;
@@ -9,11 +10,16 @@ import com.security.oauth.user.UserInformation;
 import io.jsonwebtoken.Jwts;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -34,7 +40,7 @@ public class LoginController {
     ModelMapper modelMapper;
 
     @PostMapping(value = "/login")
-    public String login(@RequestBody Map<String,String> body) throws Exception {
+    public ResponseEntity<ResponseMessage> login(@RequestBody Map<String,String> body) throws AuthenticationException {
 //        User user=userDao.findByUsername(body.get("username"));
 //        if(user==null)throw new Exception("INCORRECT");
 //        if(passwordEncoder.matches(body.get("password"),user.getPassword())) {
@@ -43,10 +49,27 @@ public class LoginController {
         //위의 방법대로 해도 되지만, authentication manager를 통해 검증을 해보려고 한다.
         if(authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(body.get("username"),body.get("password"))).isAuthenticated()){
             User user = userDao.findByUsername(body.get("username"));
-            return jwtTokenProvider.createToken(body.get("username"),user.getKoreanname(),user.getBirthday());
+            String token = jwtTokenProvider.createToken(body.get("username"),user.getKoreanname(),user.getBirthday());
+
+            Map<String,String> tokenMap = new HashMap<String,String>(){{
+                put("token",token);
+            }};
+
+            ResponseMessage responseMessage = ResponseMessage.builder()
+                    .responseTime(new Date())
+                    .data(tokenMap)
+                    .build();
+
+            return new ResponseEntity<ResponseMessage>(responseMessage, HttpStatus.OK);
         }
-        else throw new Exception("INCORRECT");
-        //else return "Wrong Password!";
+        return null;
+//        else {//여기까지 도달하지 않음. 인증이 실패하면 Error를 발생시킴.
+//            ResponseMessage responseMessage = ResponseMessage.builder()
+//                    .responseTime(new Date())
+//                    .build();
+//
+//            return new ResponseEntity<ResponseMessage>(responseMessage, HttpStatus.UNAUTHORIZED);
+//        }
     }
     @PostMapping(value = "/signin")
     public String signin(@RequestParam(value="username") String username, @RequestParam("password") String password,@RequestParam("koreanname")String koreanname){
@@ -69,10 +92,5 @@ public class LoginController {
         String subject = jwtTokenProvider.getUserPk(token);
         User user = userDao.findByUsername(subject);
         return modelMapper.map(user,UserDTO.class);
-    }
-    @PostMapping(value="/practice")
-    public String asf(){
-        System.out.println("ff");
-        return "ffff";
     }
 }
