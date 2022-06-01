@@ -1,28 +1,24 @@
 package com.security.oauth.user;
 
 
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
 
 @Service("UserInformationService")
 public class UserInformationService implements UserDetailsService {
 
     @Resource(name="UserDao")
-    private UserDao UserDao;
+    private UserRepository UserRepository;
 
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-        User user = UserDao.findByUsername(username);
+        User user = UserRepository.findByUsername(username);
 
         // 저장된 ID가 없을때 throw 시켜줍니다.
         if(user == null) {

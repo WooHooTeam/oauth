@@ -1,13 +1,12 @@
 package com.security.oauth;
 
+import com.security.oauth.DTO.RegisterUserDTO;
 import com.security.oauth.config.JwtTokenProvider;
-import com.security.oauth.config.WebSecurityconfig;
 import com.security.oauth.response.ResponseMessage;
 import com.security.oauth.user.User;
-import com.security.oauth.user.UserDTO;
-import com.security.oauth.user.UserDao;
-import com.security.oauth.user.UserInformation;
-import io.jsonwebtoken.Jwts;
+import com.security.oauth.DTO.ReturnUserDTO;
+import com.security.oauth.user.UserRepository;
+import com.security.oauth.user.UserService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -24,14 +23,9 @@ import java.util.Map;
 
 @RestController
 public class LoginController {
-    @Autowired
-    UserDao userDao;
 
     @Autowired
     JwtTokenProvider jwtTokenProvider;
-
-    @Autowired
-    PasswordEncoder passwordEncoder;
 
     @Autowired
     AuthenticationManager authenticationManager;
@@ -39,58 +33,46 @@ public class LoginController {
     @Autowired
     ModelMapper modelMapper;
 
-    @PostMapping(value = "/login")
-    public ResponseEntity<ResponseMessage> login(@RequestBody Map<String,String> body) throws AuthenticationException {
-//        User user=userDao.findByUsername(body.get("username"));
-//        if(user==null)throw new Exception("INCORRECT");
-//        if(passwordEncoder.matches(body.get("password"),user.getPassword())) {
-//            return jwtTokenProvider.createToken(body.get("username"));
-//        }
-        //위의 방법대로 해도 되지만, authentication manager를 통해 검증을 해보려고 한다.
-        if(authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(body.get("username"),body.get("password"))).isAuthenticated()){
-            User user = userDao.findByUsername(body.get("username"));
-            String token = jwtTokenProvider.createToken(body.get("username"),user.getKoreanname(),user.getBirthday());
+    @Autowired
+    UserService userService;
 
-            Map<String,String> tokenMap = new HashMap<String,String>(){{
-                put("token",token);
-            }};
+    @PostMapping(value = "/login")
+    public ResponseEntity<ResponseMessage> login(@RequestBody RegisterUserDTO registerUserDTO) throws AuthenticationException {
+        Map<String,String> resultMap = userService.loginUser(registerUserDTO);
+
+        ResponseMessage responseMessage = ResponseMessage.builder()
+                .responseTime(new Date())
+                .data(resultMap)
+                .build();
+
+        return new ResponseEntity<ResponseMessage>(responseMessage,HttpStatus.OK);
+    }
+
+    @PostMapping(value = "/signup")
+    public ResponseEntity<ResponseMessage> signup(RegisterUserDTO registerUserDTO){
+        if(userService.findUserByUserName(registerUserDTO)!=null){
+            ResponseMessage responseMessage = ResponseMessage.builder()
+                    .responseTime(new Date())
+                    .data("Already Exists")
+                    .build();
+            return new ResponseEntity<ResponseMessage>(responseMessage,HttpStatus.ALREADY_REPORTED);
+        }
+        else{
+            userService.registerUser(registerUserDTO);
 
             ResponseMessage responseMessage = ResponseMessage.builder()
                     .responseTime(new Date())
-                    .data(tokenMap)
+                    .data("Create Account Success")
                     .build();
-
-            return new ResponseEntity<ResponseMessage>(responseMessage, HttpStatus.OK);
+            return new ResponseEntity<ResponseMessage>(responseMessage,HttpStatus.OK);
         }
-        return null;
-//        else {//여기까지 도달하지 않음. 인증이 실패하면 Error를 발생시킴.
-//            ResponseMessage responseMessage = ResponseMessage.builder()
-//                    .responseTime(new Date())
-//                    .build();
+    }
 //
-//            return new ResponseEntity<ResponseMessage>(responseMessage, HttpStatus.UNAUTHORIZED);
-//        }
-    }
-    @PostMapping(value = "/signin")
-    public String signin(@RequestParam(value="username") String username, @RequestParam("password") String password,@RequestParam("koreanname")String koreanname){
-        if(userDao.findByUsername(username)!=null){
-            return "Already Exists";
-        }
-        else{
-            User user = new User();
-            user.setUsername(username);
-            user.setPassword(passwordEncoder.encode(password));
-            user.setKoreanname(koreanname);
-            user.setUserType(1);
-            userDao.save(user);
-            return "success";
-        }
-    }
-    @RequestMapping(value="/find")
-    public UserDTO findByToken(@RequestBody Map<String,String> body){
-        String token = body.get("token");
-        String subject = jwtTokenProvider.getUserPk(token);
-        User user = userDao.findByUsername(subject);
-        return modelMapper.map(user,UserDTO.class);
-    }
+//    @RequestMapping(value="/find")
+//    public ReturnUserDTO findByToken(@RequestBody Map<String,String> body){
+//        String token = body.get("token");
+//        String subject = jwtTokenProvider.getUserPk(token);
+//        User user = userService.findByUsername(subject);
+//        return modelMapper.map(user, ReturnUserDTO.class);
+//    }
 }

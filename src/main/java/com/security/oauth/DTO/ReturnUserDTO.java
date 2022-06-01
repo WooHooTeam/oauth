@@ -1,8 +1,8 @@
-package com.security.oauth.user;
+package com.security.oauth.DTO;
 
 import javax.persistence.Column;
 
-public class UserDTO {
+public class ReturnUserDTO {
     private Integer id;
     private String username;
     private int userType;
