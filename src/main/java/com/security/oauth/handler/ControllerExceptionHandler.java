@@ -20,6 +20,7 @@ public class ControllerExceptionHandler {
     public ResponseEntity<ResponseMessage> handleAuthenticationException(AuthenticationException e){
         ResponseMessage responseMessage = ResponseMessage.builder()
                     .responseTime(new Date())
+                    .data("인증 실패")
                     .build();
 
         return new ResponseEntity<ResponseMessage>(responseMessage, HttpStatus.UNAUTHORIZED);
