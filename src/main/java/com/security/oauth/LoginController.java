@@ -50,7 +50,7 @@ public class LoginController {
 
     @PostMapping(value = "/signup")
     public ResponseEntity<ResponseMessage> signup(RegisterUserDTO registerUserDTO){
-        if(userService.findUserByUserName(registerUserDTO)!=null){
+        if(userService.findUserByUserName(registerUserDTO.getUsername())!=null){
             ResponseMessage responseMessage = ResponseMessage.builder()
                     .responseTime(new Date())
                     .data("Already Exists")
@@ -67,12 +67,17 @@ public class LoginController {
             return new ResponseEntity<ResponseMessage>(responseMessage,HttpStatus.OK);
         }
     }
-//
-//    @RequestMapping(value="/find")
-//    public ReturnUserDTO findByToken(@RequestBody Map<String,String> body){
-//        String token = body.get("token");
-//        String subject = jwtTokenProvider.getUserPk(token);
-//        User user = userService.findByUsername(subject);
-//        return modelMapper.map(user, ReturnUserDTO.class);
-//    }
+
+    @RequestMapping(value="/find")
+    public ResponseEntity<ResponseMessage> findByToken(String token){
+        String subject = jwtTokenProvider.getUserPk(token);
+        ReturnUserDTO user = userService.findUserByUserName(subject);
+
+        ResponseMessage responseMessage = ResponseMessage.builder()
+                .responseTime(new Date())
+                .data(user)
+                .build();
+
+        return new ResponseEntity<ResponseMessage>(responseMessage,HttpStatus.OK);
+    }
 }

@@ -49,8 +49,8 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public ReturnUserDTO findUserByUserName(RegisterUserDTO registerUserDTO){
-        String username = registerUserDTO.getUsername();
+    public ReturnUserDTO findUserByUserName(String username){
+        //String username = registerUserDTO.getUsername();
         User user = userRepository.findByUsername(username);
 
         return modelMapper.map(user, ReturnUserDTO.class);
