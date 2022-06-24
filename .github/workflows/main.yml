@@ -1,0 +1,100 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Deploy
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    name: Build image
+    runs-on: ubuntu-latest
+    
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name : Checkout
+        uses: actions/checkout@v3
+        
+      - name : Set up JDK 1.8
+        uses : actions/setup-java@v1
+        with :
+          java-version: 1.8
+        
+      # GCP auth
+      - id: gcp_auth
+        uses: google-github-actions/auth@v0
+        with:
+          credentials_json: ${{ secrets.SERVICE_ACCOUNT_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v0
+        
+      #- uses: google-github-actions/setup-gcloud@main
+      #  with:
+      #    service_account_key: ${{ secrets.SERVICE_ACCOUNT_KEY }}
+      #    project_id: ${{ secrets.PROJECT_ID }}
+      #    export_default_credentials: true
+
+      - name: Get_file
+        run: |-
+          gsutil cp ${{ secrets.GSUTIL_ADDR }} .
+      
+      # docker Login
+      - name: Docker Login
+        uses: docker/login-action@v1
+        with: 
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+        
+      ## create application.properties
+      - name: make application.properties
+        run:
+          mkdir ./src/main/resources | 
+          touch ./src/main/resources/application.properties 
+        shell: bash
+        
+      - name: deliver application.properties
+        run: echo "${{ secrets.PROPERTIES }}" > ./src/main/resources/application.properties
+        shell: bash
+        
+      - name: Build with Maven
+        run: mvn -B package --file pom.xml
+        
+      # 전송할 파일을 담을 디렉토리 생성
+      - name: Make Directory for deliver
+        run: mkdir deploy
+        
+      # Jar 파일 Copy
+      - name: Copy Jar
+        run: cp ./target/*.jar ./deploy/
+          
+      # Build docker image
+      - name: Image_build and push
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_TAG }}
+          
+      - name: action-slack
+        uses : 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          author_name: Github Action Result
+          fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: always() # Pick up events even if the job fails or is canceld.
