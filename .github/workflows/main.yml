@@ -39,7 +39,7 @@ jobs:
           credentials_json: ${{ secrets.SERVICE_ACCOUNT_KEY }}
 
       - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v0
+        uses: google-github-actions/setup-gcloud@v1
         
       #- uses: google-github-actions/setup-gcloud@main
       #  with:
@@ -57,6 +57,10 @@ jobs:
         with: 
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # docker buildx install
+      - name: Docker Setip Buildx
+        uses: docker/setup-buildx-action@v1
         
       ## create application.properties
       - name: make application.properties
@@ -82,12 +86,7 @@ jobs:
           
       # Build docker image
       - name: Image_build and push
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          file: ./Dockerfile
-          push: true
-          tags: ${{ secrets.DOCKER_TAG }}
+        run: docker buildx build --platform linux/arm64,linux/arm/v7,linux/amd64 --push -f Dockerfile -t dngur6344/teacherapp:${{ secrets.DOCKER_TAG }} .
           
       - name: action-slack
         uses : 8398a7/action-slack@v3
